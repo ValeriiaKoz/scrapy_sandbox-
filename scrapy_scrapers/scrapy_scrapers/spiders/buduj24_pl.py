@@ -30,7 +30,7 @@ class Buduj24PLSpider(scrapy.Spider):
         print(stock)
         description = response.css("div.product-description").get()
         print(description)
-        rating = response.css(".rating-value::text").get()
+        average_rating = response.css(".rating-value::text").get()
         print(rating)
         reviews = response.css(".review-count::text").get()
         print(reviews)
@@ -46,7 +46,7 @@ class Buduj24PLSpider(scrapy.Spider):
         item["price"] = price
         item["stock"] = stock
         item["description"] = description
-        item["rating"] = rating
+        item["average_rating"] = average_rating
         item["reviews"] = reviews
         item["id"] = response.url.split("/") [-1]
 
