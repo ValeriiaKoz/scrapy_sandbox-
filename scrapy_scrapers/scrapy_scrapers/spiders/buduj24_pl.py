@@ -8,7 +8,7 @@ class Buduj24PLSpider(scrapy.Spider):
     brand = "hg"
 
     def parse(self, response):
-        product_links = response.css(".product-hover-opacity a::attr(href)").getall()
+        product_links = response.css("a.product-hover-opacity::attr(href)").getall()
         for link in product_links:
             yield response.follow(link, callback=self.parse_product)
 
@@ -31,7 +31,7 @@ class Buduj24PLSpider(scrapy.Spider):
         description = response.css("div.product-description").get()
         print(description)
         average_rating = response.css(".rating-value::text").get()
-        print(rating)
+        print(average_rating)
         reviews = response.css(".review-count::text").get()
         print(reviews)
 
