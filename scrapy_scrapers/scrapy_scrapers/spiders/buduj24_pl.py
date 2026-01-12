@@ -21,12 +21,19 @@ class Buduj24PLSpider(scrapy.Spider):
         name = response.css("h1 span::text").get()
         print(name)
         mpn = response.css("span.mpn::text").get()
+        print(mpn)
         ean = response.css("span.ean::text").get()
+        print(ean)
         price = response.css("span.price::text").get()
+        print(price)
         stock = response.css("span.availability::text").get()
+        print(stock)
         description = response.css("div.product-description").get()
+        print(description)
         rating = response.css(".rating-value::text").get()
+        print(rating)
         reviews = response.css(".review-count::text").get()
+        print(reviews)
 
         if self.brand.lower() not in name.lower():
             return
