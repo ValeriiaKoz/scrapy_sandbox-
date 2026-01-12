@@ -5,10 +5,10 @@ class Buduj24PLSpider(scrapy.Spider):
     name = "buduj24_pl"
     allowed_domains =["buduj24.pl"]
     start_urls = ["https://buduj24.pl/hg-polska/page:1"]
-    brand = "hg-polska"
+    brand = "hg"
 
     def parse(self, response):
-        product_links = response.css("a.product-link::attr(href)").getall()
+        product_links = response.css(".product-hover-opacity a::attr(href)").getall()
         for link in product_links:
             yield response.follow(link, callback=self.parse_product)
 
@@ -18,12 +18,13 @@ class Buduj24PLSpider(scrapy.Spider):
 
     def parse_product(self, response):
 
-        name = response.css("h1.title::text").get()
-        mpn = respnse.css("span.mpn::text").get()
+        name = response.css("h1 span::text").get()
+        print(name)
+        mpn = response.css("span.mpn::text").get()
         ean = response.css("span.ean::text").get()
         price = response.css("span.price::text").get()
-        stock = response.css("span.stock::text").get()
-        description = response.css("#description::text").get()
+        stock = response.css("span.availability::text").get()
+        description = response.css("div.product-description").get()
         rating = response.css(".rating-value::text").get()
         reviews = response.css(".review-count::text").get()
 

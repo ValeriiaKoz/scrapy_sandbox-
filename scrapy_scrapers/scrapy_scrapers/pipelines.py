@@ -8,7 +8,7 @@ class CsvExportPipeline:
         self.writer.writerow(["id", "mpn", "ean", "url", "name", "description",
                               "average_rating", "reviews_amount", "price", "stock"])
 
-    def close_spider(self):
+    def close_spider(self, spider):
         self.file.close()
 
     def process_item(self, item):
