@@ -8,7 +8,7 @@ class Buduj24PLSpider(scrapy.Spider):
     brand = "hg"
 
     def parse(self, response):
-        product_links = response.css("a.product-hover-opacity::attr(href)").getall()
+        product_links = response.xpath('//a[@data-type="product-url"]/@href').extract()
         for link in product_links:
             yield response.follow(link, callback=self.parse_product)
 
@@ -22,7 +22,7 @@ class Buduj24PLSpider(scrapy.Spider):
         print(name)
         mpn = response.css("span.mpn::text").get()
         print(mpn)
-        ean = response.css("span.ean::text").get()
+        ean = response.xpath('//span[contains(@id, "code-ean")]/text()').extract_first()
         print(ean)
         price = response.css("span.price::text").get()
         print(price)
@@ -51,3 +51,4 @@ class Buduj24PLSpider(scrapy.Spider):
         item["id"] = response.url.split("/") [-1]
 
         yield item
+        
