@@ -3,7 +3,7 @@ from scrapy_scrapers.items import Product
 
 class Buduj24PLSpider(scrapy.Spider):
     name = "buduj24_pl"
-    allowed_domains =["buduj24.pl"]
+
     start_urls = ["https://buduj24.pl/hg-polska/page:1"]
     brand = "hg"
 
