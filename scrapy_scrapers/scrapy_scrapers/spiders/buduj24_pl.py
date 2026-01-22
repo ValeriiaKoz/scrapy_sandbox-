@@ -3,37 +3,28 @@ from scrapy_scrapers.items import Product
 
 class Buduj24PLSpider(scrapy.Spider):
     name = "buduj24_pl"
-    allowed_domains =["buduj24.pl"]
     start_urls = ["https://buduj24.pl/hg-polska/page:1"]
     brand = "hg"
 
     def parse(self, response):
-        product_links = response.css("a.product-hover-opacity::attr(href)").getall()
+        product_links = response.xpath("//a[contains(@class, 'product-hover-opacity')]/@href").extract()
         for link in product_links:
             yield response.follow(link, callback=self.parse_product)
 
-        next_page = response.css("a.next::attr(href)").get()
+        next_page = response.xpath("a.next::attr(href)").extract_first()
         if next_page is not None:
             yield response.follow(next_page, callback=self.parse)
 
     def parse_product(self, response):
 
-        name = response.css("h1 span::text").get()
-        print(name)
-        mpn = response.css("span.mpn::text").get()
-        print(mpn)
-        ean = response.css("span.ean::text").get()
-        print(ean)
-        price = response.css("span.price::text").get()
-        print(price)
-        stock = response.css("span.availability::text").get()
-        print(stock)
-        description = response.css("div.product-description").get()
-        print(description)
-        average_rating = response.css(".rating-value::text").get()
-        print(average_rating)
-        reviews_amount = response.css(".review-count::text").get()
-        print(reviews_amount)
+        name = response.xpath("//h1/span/text()").extract_first()
+        mpn = response.xpath("//span[@class='mpn']/text()").extract_first()
+        ean = response.xpath("//span[@class='ean']/text()").extract_first()
+        price = response.xpath("//span[contains(@class, 'price')]/text()").extract_first()
+        stock = response.xpath("//span[contains(@class, 'availability')]/text()").extract_first()
+        description = response.xpath("//div[@class='product-description']//text()").extract_first()
+        average_rating = response.xpath("//*[contains(@class,'rating-value')]/text()").extract_first()
+        reviews_amount = response.xpath("//*[contains(@class,'review-count')]/text()").extract_first()
 
         if self.brand.lower() not in name.lower():
             return
