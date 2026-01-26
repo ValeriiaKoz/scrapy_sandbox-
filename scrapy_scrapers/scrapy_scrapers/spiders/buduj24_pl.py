@@ -17,43 +17,29 @@ class Buduj24PLSpider(scrapy.Spider):
 
     def parse_product(self, response):
 
-        name = response.xpath("//h1/span/text()").extract_first()
-        if name:
-            name = name.strip()
+        name = self.cleanup_string(response.xpath("//h1/span/text()").extract_first())
+
+        if not name or self.brand.lower() not in name.lower():
+            return
 
         item = Product()
         item["url"] = response.url
         item["name"] = name
 
-        item["mpn"] = response.xpath("//span[@class='mpn']/text()").extract_first()
-        if item["mpn"]:
-            item["mpn"] = item["mpn"].strip()
-
-        item["ean"] = response.xpath("//span[@class='ean']/text()").extract_first()
-        if item["ean"]:
-            item["ean"] = item["ean"].strip()
-
-        item["price"] = response.xpath("//span[contains(@class, 'price')]/text()").extract_first()
-        if item["price"]:
-            item["price"] = item["price"].strip()
-
-        item["stock"] = response.xpath("//span[contains(@class, 'availability')]/text()").extract_first()
-        if item["stock"]:
-            item["stock"] = item["stock"].strip()
-
-        item["description"] = response.xpath("//div[@class='product-description']//text()").extract_first()
-
-        item["average_rating"] = response.xpath("//*[contains(@class,'rating-value')]/text()").extract_first()
-        if item["average_rating"]:
-            item["average_rating"] = item["average_rating"].strip()
-
-        item["reviews_amount"] = response.xpath("//*[contains(@class,'review-count')]/text()").extract_first()
-        if item["reviews_amount"]:
-            item["reviews_amount"] = item["reviews_amount"].strip()
+        item["mpn"] = self.cleanup_string(response.xpath("//span[@class='mpn']/text()").extract_first())
+        item["ean"] = self.cleanup_string(response.xpath("//span[@class='ean']/text()").extract_first())
+        item["price"] = self.cleanup_string(response.xpath("//span[contains(@class, 'price')]/text()").extract_first())
+        item["stock"] = self.cleanup_string(response.xpath("//span[contains(@class, 'availability')]/text()").extract_first())
+        item["description"] = self.cleanup_string(response.xpath("//div[@class='product-description']//text()").extract_first())
+        item["average_rating"] = self.cleanup_string(response.xpath("//*[contains(@class,'rating-value')]/text()").extract_first())
+        item["reviews_amount"] = self.cleanup_string(response.xpath("//*[contains(@class,'review-count')]/text()").extract_first())
 
         item["id"] = response.url.split("/") [-1]
 
-        if self.brand.lower() not in (item["name"] or "").lower():
-            return
-
         yield item
+
+    @staticmethod
+    def cleanup_string(value):
+         if value:
+             return value.strip()
+         return None
