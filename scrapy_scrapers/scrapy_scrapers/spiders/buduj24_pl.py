@@ -3,51 +3,43 @@ from scrapy_scrapers.items import Product
 
 class Buduj24PLSpider(scrapy.Spider):
     name = "buduj24_pl"
-    allowed_domains =["buduj24.pl"]
     start_urls = ["https://buduj24.pl/hg-polska/page:1"]
     brand = "hg"
 
     def parse(self, response):
-        product_links = response.css("a.product-hover-opacity::attr(href)").getall()
+        product_links = response.xpath("//a[contains(@class, 'product-hover-opacity')]/@href").extract()
         for link in product_links:
             yield response.follow(link, callback=self.parse_product)
 
-        next_page = response.css("a.next::attr(href)").get()
-        if next_page is not None:
+        next_page = response.xpath("//a[contains(@class, 'next')]/@href").extract_first()
+        if next_page:
             yield response.follow(next_page, callback=self.parse)
 
     def parse_product(self, response):
 
-        name = response.css("h1 span::text").get()
-        print(name)
-        mpn = response.css("span.mpn::text").get()
-        print(mpn)
-        ean = response.css("span.ean::text").get()
-        print(ean)
-        price = response.css("span.price::text").get()
-        print(price)
-        stock = response.css("span.availability::text").get()
-        print(stock)
-        description = response.css("div.product-description").get()
-        print(description)
-        average_rating = response.css(".rating-value::text").get()
-        print(average_rating)
-        reviews_amount = response.css(".review-count::text").get()
-        print(reviews_amount)
+        name = self.cleanup_string(response.xpath("//h1/span/text()").extract_first())
 
-        if self.brand.lower() not in name.lower():
+        if not name or self.brand.lower() not in name.lower():
             return
 
         item = Product()
         item["url"] = response.url
         item["name"] = name
-        item["mpn"] = mpn
-        item["ean"] = ean
-        item["price"] = price
-        item["stock"] = stock
-        item["description"] = description
-        item["average_rating"] = average_rating
-        item["reviews_amount"] = reviews_amount
-        item["id"] = response.url.split("/") [-1]
+
+        item["mpn"] = self.cleanup_string(response.xpath("//span[@class='mpn']/text()").extract_first())
+        item["ean"] = self.cleanup_string(response.xpath("//span[@class='ean']/text()").extract_first())
+        item["price"] = self.cleanup_string(response.xpath("//span[contains(@class, 'price')]/text()").extract_first())
+        item["stock"] = self.cleanup_string(response.xpath("//span[contains(@class, 'availability')]/text()").extract_first())
+        item["description"] = self.cleanup_string(response.xpath("//div[@class='product-description']//text()").extract_first())
+        item["average_rating"] = self.cleanup_string(response.xpath("//*[contains(@class,'rating-value')]/text()").extract_first())
+        item["reviews_amount"] = self.cleanup_string(response.xpath("//*[contains(@class,'review-count')]/text()").extract_first())
+
+        item["id"] = response.url.split("/")[-1]
 
         yield item
+
+    @staticmethod
+    def cleanup_string(value):
+         if value:
+             return value.strip()
+         return None
