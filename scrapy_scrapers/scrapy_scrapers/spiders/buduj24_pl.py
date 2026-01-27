@@ -34,7 +34,7 @@ class Buduj24PLSpider(scrapy.Spider):
         item["average_rating"] = self.cleanup_string(response.xpath("//*[contains(@class,'rating-value')]/text()").extract_first())
         item["reviews_amount"] = self.cleanup_string(response.xpath("//*[contains(@class,'review-count')]/text()").extract_first())
 
-        item["id"] = response.url.split("/") [-1]
+        item["id"] = response.url.split("/")[-1]
 
         yield item
 
