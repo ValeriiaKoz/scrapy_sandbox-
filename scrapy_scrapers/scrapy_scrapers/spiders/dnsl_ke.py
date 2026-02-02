@@ -31,7 +31,7 @@ class DnslKeSpider(scrapy.Spider):
         item["stock"] = None
         item["description"] = self.cleanup_string(response.xpath("//div[@id='tab-description']//text()").extract_first())
         item["average_rating"] = self.clean_string(response.xpath("//div[contains(@class,'star-rating')]/@aria-label").extract_first())
-        item["reviews_amont"] = None
+        item["reviews_amount"] = None
         item["id"] = response.url.split("/")[-1]
         yield item
 
