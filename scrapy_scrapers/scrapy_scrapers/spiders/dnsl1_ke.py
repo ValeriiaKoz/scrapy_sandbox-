@@ -3,7 +3,7 @@ from scrapy_scrapers.items import Product
 
 class Dnsl1KeSpider(scrapy.Spider):
     name = "dnsl1_ke"
-    start_urls = ["https://dnsl.co.ke/?s=Epson&post_type=product&product_cat=0"].getall()
+    start_urls = ["https://dnsl.co.ke/?s=Epson&post_type=product&product_cat=0"]
     brand = "Epson"
 
     def parse(self, response):
