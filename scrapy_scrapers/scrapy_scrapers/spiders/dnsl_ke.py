@@ -9,13 +9,12 @@ class DnslKeSpider(scrapy.Spider):
     start_urls = ["https://dnsl.co.ke/?s=Epson&post_type=product&product_cat=0"]
     brand = "Epson"
 
-    custom_settings = {'USER_AGENT': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',}
+    custom_settings = {
+        'USER_AGENT': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    }
 
     def parse(self, response):
-        json_tags = response.xpath('//span[contains(@class, "gtm4wp_productdata")]')
-
-        self.logger.info(f"Знайдено {len(json_tags)} товарів на сторінці: {response.url}")
-
+        json_tags = response.xpath('//span[@class="gtm4wp_productdata"]')
         for tag in json_tags:
             json_str = tag.xpath('./@data-gtm4wp_product_data').get()
             if not json_str:
@@ -25,7 +24,7 @@ class DnslKeSpider(scrapy.Spider):
             except json.JSONDecodeError:
                 continue
 
-            name = data.get("item_name") or data.get("name") or ""
+            name = data.get("item_name", "")
 
             if self.brand.lower() not in name.lower():
                 continue
@@ -44,6 +43,6 @@ class DnslKeSpider(scrapy.Spider):
 
             yield item
 
-        next_page = response.xpath("//a[contains(@class, 'next')]/@href").get()
+        next_page = response.xpath("//a[@class='next page-numbers']/@href").get()
         if next_page:
             yield response.follow(next_page, callback=self.parse)
