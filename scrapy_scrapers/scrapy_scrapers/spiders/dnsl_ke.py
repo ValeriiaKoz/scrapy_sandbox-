@@ -1,5 +1,7 @@
 import scrapy
+import json
 from scrapy_scrapers.items import Product
+
 
 class DnslKeSpider(scrapy.Spider):
     name = "dnsl_ke"
@@ -7,44 +9,41 @@ class DnslKeSpider(scrapy.Spider):
     start_urls = ["https://dnsl.co.ke/?s=Epson&post_type=product&product_cat=0"]
     brand = "Epson"
 
-    def parse(self, response):
-        product_links = response.xpath("//a[contains(@class, 'woocommerce-loop-product__link')]/@href").extract()
-        for link in product_links:
-            yield response.follow(link, callback=self.parse_product)
+    custom_settings = {'USER_AGENT': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',}
 
-        next_page = response.xpath("//a[@class='next page-numbers']/@href").get()
+    def parse(self, response):
+        json_tags = response.xpath('//span[contains(@class, "gtm4wp_productdata")]')
+
+        self.logger.info(f"Знайдено {len(json_tags)} товарів на сторінці: {response.url}")
+
+        for tag in json_tags:
+            json_str = tag.xpath('./@data-gtm4wp_product_data').get()
+            if not json_str:
+                continue
+            try:
+                data = json.loads(json_str)
+            except json.JSONDecodeError:
+                continue
+
+            name = data.get("item_name") or data.get("name") or ""
+
+            if self.brand.lower() not in name.lower():
+                continue
+
+            item = Product()
+            item["name"] = name
+            item["url"] = data.get("productlink")
+            item["mpn"] = data.get("sku")
+            item["price"] = data.get("price")
+            item["stock"] = data.get("stockstatus")
+            item["id"] = data.get("internal_id") or data.get("id")
+
+            item["ean"] = data.get("gtin")
+            item["average_rating"] = None
+            item["description"] = None
+
+            yield item
+
+        next_page = response.xpath("//a[contains(@class, 'next')]/@href").get()
         if next_page:
             yield response.follow(next_page, callback=self.parse)
-
-    def parse_product(self, response):
-        name = self.clean(response.xpath("//h1/text()").get())
-
-        if not name or self.brand.lower() not in name.lower():
-            return
-
-        item = Product()
-        item["url"] = response.url
-        item["name"] = name
-        item["mpn"] = self.cleanup_string(response.xpath("//span[@class='sku']/text()").get())
-        item["ean"] = None
-        item["price"] = self.cleanup_string("".join(response.xpath("//p[@class='price']//text()").getall()))
-        item["stock"] = None
-        item["description"] = self.cleanup_string(
-            " ".join(response.xpath("//div[@id='tab-description']//text()").getall()))
-        item["average_rating"] = self.cleanup_string(
-            response.xpath("//div[contains(@class,'star-rating')]/@aria-label").get())
-        item["reviews_amount"] = None
-        item["id"] = response.url.rstrip("/").split("/")[-1]
-
-        yield item
-
-    def clean(self, value):
-        if not value:
-            return None
-        return " ".join(value.split()).strip()
-
-    @staticmethod
-    def cleanup_string(value):
-        if value:
-            return value.strip()
-        return None
